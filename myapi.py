@@ -29,40 +29,40 @@ def index():
     return {"name": "FastAPI", "version": "0.1"}
 
 @app.get("/get-student/{student_id}")
-def get_student(student_id: int = Path(..., title="Student ID", description="ID of the student to retrieve",)):
+def get_student(student_id: int = Path(..., title="Student ID", description="ID do estudante a ser recuperado")):
     """
-    Retrieve a student's information by their ID.
+    Recupera as informações de um estudante pelo seu ID.
 
     Args:
-        student_id (int): The ID of the student to retrieve. This is a required path parameter.
+        student_id (int): O ID do estudante a ser recuperado. Este é um parâmetro de caminho obrigatório.
 
-    Returns:
-        dict: A dictionary containing the student's information if found.
-              If the student is not found, returns a dictionary with an error message.
+    Retorna:
+        dict: Um dicionário contendo as informações do estudante, se encontrado.
+              Se o estudante não for encontrado, retorna um dicionário com uma mensagem de erro.
     """
     try:
         student = students[student_id]
     except KeyError:
-        return {"error": "Student not found"}
+        return {"error": "Estudante não encontrado"}
     return student
 
 
 @app.get("/get-student-by-name")
-def get_student_by_name(name: Optional[str] = Query(None, title="Name", description="Name of the student to retrieve")):
+def get_student_by_name(name: Optional[str] = Query(None, title="Name", description="Nome do estudante a ser recuperado")):
     """
-    Retrieve a student's information by their name.
+    Recupera as informações de um estudante pelo seu nome.
 
     Args:
-        name (str): The name of the student to retrieve. This is a required query parameter.
+        name (str): O nome do estudante a ser recuperado. Este é um parâmetro de consulta obrigatório.
 
-    Returns:
-        dict: A dictionary containing the student's information if found.
-              If the student is not found, returns a dictionary with an error message.
+    Retorna:
+        dict: Um dicionário contendo as informações do estudante, se encontrado.
+              Se o estudante não for encontrado, retorna um dicionário com uma mensagem de erro.
     """
     for student_id, student in students.items():
         if student["name"] == name:
             return {student_id: student}
-    return {"error": "Student not found"}
+    return {"error": "Estudante não encontrado"}
 
 
 
@@ -73,18 +73,18 @@ def get_all_students():
 @app.post("/create-student/{student_id}")
 def create_student(student_id: int, student: Student):
     """
-    Create a new student with the given ID and information.
+    Cria um novo estudante com o ID e as informações fornecidas.
 
     Args:
-        student_id (int): The ID of the student to create. This is a required path parameter.
-        student (Student): The information of the student to create. This is a required body parameter.
+        student_id (int): O ID do estudante a ser criado. Este é um parâmetro de caminho obrigatório.
+        student (Student): As informações do estudante a ser criado. Este é um parâmetro de corpo obrigatório.
 
-    Returns:
-        dict: A dictionary containing the created student's information.
-              If the student ID already exists, returns a dictionary with an error message.
+    Retorna:
+        dict: Um dicionário contendo as informações do estudante criado.
+              Se o ID do estudante já existir, retorna um dicionário com uma mensagem de erro.
     """
     if student_id in students:
-        return {"error": "Student ID already exists"}
+        return {"error": "ID do estudante já existe"}
     students[student_id] = student.dict()
     return students[student_id]
 
@@ -92,21 +92,39 @@ def create_student(student_id: int, student: Student):
 @app.put("/update-student/{student_id}")
 def update_student(student_id: int, student: UpdateStudent):
     """
-    Update an existing student's information by their ID.
+    Atualiza as informações de um estudante existente pelo seu ID.
 
     Args:
-        student_id (int): The ID of the student to update. This is a required path parameter.
-        student (UpdateStudent): The updated information of the student. This is a required body parameter.
+        student_id (int): O ID do estudante a ser atualizado. Este é um parâmetro de caminho obrigatório.
+        student (UpdateStudent): As informações atualizadas do estudante. Este é um parâmetro de corpo obrigatório.
 
-    Returns:
-        dict: A dictionary containing the updated student's information.
-              If the student ID does not exist, returns a dictionary with an error message.
+    Retorna:
+        dict: Um dicionário contendo as informações atualizadas do estudante.
+              Se o ID do estudante não existir, retorna um dicionário com uma mensagem de erro.
     """
     if student_id not in students:
-        return {"error": "Student not found"}
+        return {"error": "Estudante não encontrado"}
     
     existing_student = students[student_id]
     updated_data = student.dict(exclude_unset=True)
     existing_student.update(updated_data)
     students[student_id] = existing_student
     return students[student_id]
+
+@app.delete("/delete-student/{student_id}")
+def delete_student(student_id: int):
+    """
+    Exclui um estudante pelo seu ID.
+
+    Args:
+        student_id (int): O ID do estudante a ser excluído. Este é um parâmetro de caminho obrigatório.
+
+    Retorna:
+        dict: Um dicionário contendo uma mensagem de sucesso se o estudante foi excluído.
+              Se o ID do estudante não existir, retorna um dicionário com uma mensagem de erro.
+    """
+    if student_id not in students:
+        return {"error": "Estudante não encontrado"}
+    
+    del students[student_id]
+    return {"message": "Estudante excluído com sucesso"}
