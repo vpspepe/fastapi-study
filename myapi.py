@@ -5,10 +5,18 @@ from pydantic import BaseModel
 app = FastAPI()
 
 students = {
-    1: {"name": "John", "age": 20},
-    2: {"name": "Jane", "age": 22},
-    3: {"name": "Doe", "age": 21}
+    1: {"name": "John", "age": 20, "enrolled": True},
+    2: {"name": "Jane", "age": 22, "enrolled": False},
+    3: {"name": "Doe", "age": 21, "enrolled": True},
+    4: {"name": "Alice", "age": 23, "enrolled": True},
+    5: {"name": "Bob", "age": 24, "enrolled": False},
+    6: {"name": "Charlie", "age": 25, "enrolled": True},
 }
+
+class Student(BaseModel):
+    name: str
+    age: int
+    enrolled: bool
 
 @app.get("/")
 def index():
@@ -55,3 +63,21 @@ def get_student_by_name(name: Optional[str] = Query(None, title="Name", descript
 @app.get("/get-all-students")
 def get_all_students():
     return students
+
+@app.post("/create-student/{student_id}")
+def create_student(student_id: int, student: Student):
+    """
+    Create a new student with the given ID and information.
+
+    Args:
+        student_id (int): The ID of the student to create. This is a required path parameter.
+        student (Student): The information of the student to create. This is a required body parameter.
+
+    Returns:
+        dict: A dictionary containing the created student's information.
+              If the student ID already exists, returns a dictionary with an error message.
+    """
+    if student_id in students:
+        return {"error": "Student ID already exists"}
+    students[student_id] = student.dict()
+    return students[student_id]
