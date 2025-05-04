@@ -18,6 +18,12 @@ class Student(BaseModel):
     age: int
     enrolled: bool
 
+class UpdateStudent(BaseModel):
+    name: Optional[str] = None
+    age: Optional[int] = None
+    enrolled: Optional[bool] = None
+
+
 @app.get("/")
 def index():
     return {"name": "FastAPI", "version": "0.1"}
@@ -80,4 +86,27 @@ def create_student(student_id: int, student: Student):
     if student_id in students:
         return {"error": "Student ID already exists"}
     students[student_id] = student.dict()
+    return students[student_id]
+
+
+@app.put("/update-student/{student_id}")
+def update_student(student_id: int, student: UpdateStudent):
+    """
+    Update an existing student's information by their ID.
+
+    Args:
+        student_id (int): The ID of the student to update. This is a required path parameter.
+        student (UpdateStudent): The updated information of the student. This is a required body parameter.
+
+    Returns:
+        dict: A dictionary containing the updated student's information.
+              If the student ID does not exist, returns a dictionary with an error message.
+    """
+    if student_id not in students:
+        return {"error": "Student not found"}
+    
+    existing_student = students[student_id]
+    updated_data = student.dict(exclude_unset=True)
+    existing_student.update(updated_data)
+    students[student_id] = existing_student
     return students[student_id]
